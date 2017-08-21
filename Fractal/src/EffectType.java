@@ -1,0 +1,7 @@
+public enum EffectType {
+    RANDOM_DEVIATION,
+    TRAILS,
+    FOREGROUND_COLOR,
+    BACKGROUND_COLOR,
+    COLOR_CHANGE
+}

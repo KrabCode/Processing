@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="core">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/Desktop/Processing/processing-3.3/core/library/core.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="file://$USER_HOME$/Desktop/VideoExport/reference" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="file://$USER_HOME$/Desktop/VideoExport/src" />
+    </SOURCES>
+  </library>
+</component>
