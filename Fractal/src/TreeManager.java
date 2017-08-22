@@ -19,6 +19,15 @@ public class TreeManager {
         p = parent;
     }
 
+    /**
+     * Instantiates the tree and populates it with branches.
+     *
+     * @param generations how many levels should the tree have
+     * @param childCount how many children on each level
+     * @param childSpread angular distance between siblings
+     * @param size absolute size of the tree
+     * @param relativeChildSize relative size of the child
+     */
     public void populate(int generations, int childCount, float childSpread, float size, float relativeChildSize)
     {
         //place root at the center of the screen
@@ -41,6 +50,15 @@ public class TreeManager {
         }
     }
 
+    /**
+     * Instantiates additional branches from an input branch's size and angle.
+     *
+     * @param branch the parent branch
+     * @param spread angular distance between siblings
+     * @param childCount the number of children to instantiate
+     * @param childSize absolute child size
+     * @return
+     */
     private List<Branch> multiplyBranch(Branch branch, float spread, int childCount, float childSize)
     {
         List<Branch> resultingChildren = new ArrayList<>();
@@ -63,6 +81,13 @@ public class TreeManager {
         return resultingChildren;
     }
 
+    /**
+     * Finds a point in a given angle and distance from a center point.
+     * @param center center point
+     * @param radius given distance
+     * @param angle given angle
+     * @return
+     */
     private PVector findPointOnEdgeOfCircle(PVector center, float radius, float angle)
     {
         return new PVector(
@@ -73,14 +98,15 @@ public class TreeManager {
 
     /**
      * Draws the tree to the p canvas.
-     * @param effects
+     * @param effects list of effects to display when drawing
      */
     public void draw(List<SpecialEffect> effects)
     {
-        //BACKGROUND
+        //paint the background
         SpecialEffect trailEffect = getEffectByType(EffectType.TRAILS, effects);
         if(trailEffect!=null)
         {
+            //the magnitude is the alpha of the background: lower = more trails
             p.fill(255, trailEffect.magnitude);
 
         }else{
@@ -88,7 +114,7 @@ public class TreeManager {
         }
         p.rect(0, 0, p.width, p.height);
 
-        //DRAW TREE
+        //draw the tree
         if(_mainTree!=null && _mainTree.size() > 0)
         {
             for(Branch b : _mainTree)

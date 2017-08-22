@@ -28,7 +28,7 @@ public class MainApp extends PApplet{
 
     public void setup()
     {
-        frameRate(30);
+        frameRate(60);
         _spread = 0;
         _size = 80;
         _generations = 4;
@@ -41,7 +41,7 @@ public class MainApp extends PApplet{
 
         SpecialEffect e01 = new SpecialEffect();
         e01.effectType = EffectType.TRAILS;
-        e01.magnitude = 30;
+        e01.magnitude = 50;
         _effects.add(e01);
 
         _tree = new TreeManager(this);
