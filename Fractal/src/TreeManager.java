@@ -12,7 +12,7 @@ import static processing.core.PConstants.PI;
 public class TreeManager {
 
     private PApplet p;
-    private ArrayList<Branch> _mainTree;
+    private List<List<Branch>> _mainTree;
 
     TreeManager(PApplet parent)
     {
@@ -28,24 +28,30 @@ public class TreeManager {
      * @param size absolute size of the tree
      * @param relativeChildSize relative size of the child
      */
-    public void populate(int generations, int childCount, float childSpread, float size, float relativeChildSize)
+    public void populate(int rootCount, int generations, int childCount, float childSpread, float size, float relativeChildSize)
     {
-        //place root at the center of the screen
-        PVector rootOrigin = new PVector(p.width/2, p.height/2);
-        PVector rootTarget = findPointOnEdgeOfCircle(rootOrigin, size, 0);
-        Branch root = new Branch(rootOrigin, rootTarget);
         _mainTree = new ArrayList<>();
-        _mainTree.add(root);
-
-        //multiply it and each of its children until generations limit is reached
-        for(int i = 0; i < generations; i++)
+        for(int rootIndex = 0; rootIndex < rootCount; rootIndex++)
         {
-            int startingBranchCount = _mainTree.size(); //remember the starting value: the number of children will change
-            for(int j = 0; j < startingBranchCount; j++)
+            float rootAngle = rootIndex*(360/rootCount);
+
+            //place root at the center of the screen
+            PVector rootCenter = new PVector(p.width/2, p.height/2);
+            PVector rootTarget = findPointOnEdgeOfCircle(rootCenter, size, -90 + rootAngle);
+            Branch root = new Branch(rootCenter, rootTarget);
+            _mainTree.add(new ArrayList<>());
+            _mainTree.get(rootIndex).add(root);
+
+            //multiply it and each of its children until generations limit is reached
+            for(int i = 0; i < generations; i++)
             {
-                List<Branch> children = multiplyBranch(_mainTree.get(j),
-                        childSpread, childCount, size*relativeChildSize);
-                _mainTree.addAll(children);
+                int startingBranchCount = _mainTree.get(rootIndex).size(); //remember the starting value: the number of children will change
+                for(int j = 0; j < startingBranchCount; j++)
+                {
+                    List<Branch> children = multiplyBranch(_mainTree.get(rootIndex).get(j),
+                            childSpread, childCount, size*relativeChildSize);
+                    _mainTree.get(rootIndex).addAll(children);
+                }
             }
         }
     }
@@ -68,8 +74,8 @@ public class TreeManager {
         }
 
         float spreadPerChild = spread*2 / (float)childCount;
-        PVector childOrigin = new PVector(branch.target.x, branch.target.y);
-        float parentAngle = atan2(branch.target.y,branch.target.x);
+        PVector childOrigin = branch.target;
+        float parentAngle = getAngleBetweenVectors(branch.origin, branch.target);
         for(int i = 0; i < childCount+1; i++)
         {
             float firstChildAngle = parentAngle - spread;
@@ -96,6 +102,12 @@ public class TreeManager {
         );
     }
 
+    private float getAngleBetweenVectors(PVector origin, PVector end)
+    {
+        return degrees(p.atan2(end.y - origin.y, end.x - origin.x));
+    }
+
+
     /**
      * Draws the tree to the p canvas.
      * @param effects list of effects to display when drawing
@@ -117,11 +129,15 @@ public class TreeManager {
         //draw the tree
         if(_mainTree!=null && _mainTree.size() > 0)
         {
-            for(Branch b : _mainTree)
+            for(List<Branch> subTree : _mainTree)
             {
-                p.fill(0);
-                p.line(b.origin.x, b.origin.y, b.target.x, b.target.y);
+                for(Branch b : subTree)
+                {
+                    p.fill(0);
+                    p.line(b.origin.x, b.origin.y, b.target.x, b.target.y);
+                }
             }
+
         }
     }
 

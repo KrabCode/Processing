@@ -8,6 +8,7 @@ public class MainApp extends PApplet{
 
     private int _generations;
     private int _childCount;
+    private int _rootCount;
     private float _spread;   // magnitude of heading change from parent to children
     private float _size;        // the length of the root branch
     private float _relativeChildSize;   // 1 = same as parent, 0,5 = half, 2 = double size
@@ -28,11 +29,12 @@ public class MainApp extends PApplet{
 
     public void setup()
     {
-        frameRate(60);
-        _spread = 0;
-        _size = 80;
+        frameRate(30);
+        _rootCount = 1;
         _generations = 4;
-        _childCount = 4;
+        _childCount = 3;
+        _spread = 0;
+        _size = 60;
         _relativeChildSize = 1f;
 
 
@@ -41,17 +43,17 @@ public class MainApp extends PApplet{
 
         SpecialEffect e01 = new SpecialEffect();
         e01.effectType = EffectType.TRAILS;
-        e01.magnitude = 50;
+        e01.magnitude = 10;
         _effects.add(e01);
 
         _tree = new TreeManager(this);
     }
 
     public void draw(){
-
-        _tree.populate(_generations,
+        _tree.populate(_rootCount,
+                _generations,
                 _childCount,
-                _spread += 0.5,
+                _spread += 0.2,
                 _size,
                 _relativeChildSize);
         _tree.draw(_effects);
