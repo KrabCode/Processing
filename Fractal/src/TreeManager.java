@@ -4,6 +4,7 @@ import processing.core.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import static processing.core.PApplet.atan2;
 import static processing.core.PApplet.degrees;
 import static processing.core.PConstants.PI;
 
@@ -21,8 +22,8 @@ public class TreeManager {
     public void populate(int generations, int childCount, float childSpread, float size, float relativeChildSize)
     {
         //place root at the center of the screen
-        PVector rootOrigin = new PVector(p.width/2-size, p.height/2+size);
-        PVector rootTarget = new PVector(p.width/2, p.height/2);
+        PVector rootOrigin = new PVector(p.width/2, p.height/2);
+        PVector rootTarget = findPointOnEdgeOfCircle(rootOrigin, size, 0);
         Branch root = new Branch(rootOrigin, rootTarget);
         _mainTree = new ArrayList<>();
         _mainTree.add(root);
@@ -43,16 +44,16 @@ public class TreeManager {
     private List<Branch> multiplyBranch(Branch branch, float spread, int childCount, float childSize)
     {
         List<Branch> resultingChildren = new ArrayList<>();
-        if(spread>360*4)
+        if(spread>360*2)
         {
-            spread = spread % 360*4; //limit it to the maximum angle
+            spread = spread % 360*2; //limit the maximum spread
         }
 
         float spreadPerChild = spread*2 / (float)childCount;
         PVector childOrigin = new PVector(branch.target.x, branch.target.y);
+        float parentAngle = atan2(branch.target.y,branch.target.x);
         for(int i = 0; i < childCount+1; i++)
         {
-            float parentAngle = degrees(PVector.angleBetween(branch.origin, branch.target));
             float firstChildAngle = parentAngle - spread;
             float angle =  firstChildAngle + spreadPerChild * i;
             PVector childTarget = findPointOnEdgeOfCircle(childOrigin, childSize, angle);
@@ -70,6 +71,10 @@ public class TreeManager {
         );
     }
 
+    /**
+     * Draws the tree to the p canvas.
+     * @param effects
+     */
     public void draw(List<SpecialEffect> effects)
     {
         //BACKGROUND
@@ -97,7 +102,6 @@ public class TreeManager {
     /**
      * Picks the first effect of a given type.
      * This means the second effect of the same type will be ignored.
-     *
      * @param type
      * @param effects
      * @return

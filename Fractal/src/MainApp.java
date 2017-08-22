@@ -28,19 +28,20 @@ public class MainApp extends PApplet{
 
     public void setup()
     {
-        frameRate(15);
+        frameRate(30);
         _spread = 0;
-        _size = 50;
-        _generations = 5;
+        _size = 80;
+        _generations = 4;
         _childCount = 4;
         _relativeChildSize = 1f;
+
 
         //VISUAL EFFECTS SETUP
         _effects = new ArrayList<>();
 
         SpecialEffect e01 = new SpecialEffect();
         e01.effectType = EffectType.TRAILS;
-        e01.magnitude = 15;
+        e01.magnitude = 30;
         _effects.add(e01);
 
         _tree = new TreeManager(this);
@@ -50,7 +51,7 @@ public class MainApp extends PApplet{
 
         _tree.populate(_generations,
                 _childCount,
-                _spread += 1,
+                _spread += 0.5,
                 _size,
                 _relativeChildSize);
         _tree.draw(_effects);
