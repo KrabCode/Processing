@@ -2,12 +2,11 @@
   <library name="core">
     <CLASSES>
       <root url="jar://$USER_HOME$/Desktop/Processing/processing-3.3/core/library/core.jar!/" />
+      <root url="jar://$USER_HOME$/Desktop/VideoExport/library/jna-4.4.0.jar!/" />
+      <root url="jar://$USER_HOME$/Desktop/VideoExport/library/jna-platform-4.4.0.jar!/" />
+      <root url="jar://$USER_HOME$/Desktop/VideoExport/library/VideoExport.jar!/" />
     </CLASSES>
-    <JAVADOC>
-      <root url="file://$USER_HOME$/Desktop/VideoExport/reference" />
-    </JAVADOC>
-    <SOURCES>
-      <root url="file://$USER_HOME$/Desktop/VideoExport/src" />
-    </SOURCES>
+    <JAVADOC />
+    <SOURCES />
   </library>
 </component>

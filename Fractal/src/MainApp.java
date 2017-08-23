@@ -1,3 +1,4 @@
+import com.hamoid.VideoExport;
 import processing.core.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,11 +10,12 @@ public class MainApp extends PApplet{
     private int _generations;
     private int _childCount;
     private int _rootCount;
-    private float _spread;   // magnitude of heading change from parent to children
-    private float _size;        // the length of the root branch
+    private float _spread;              // magnitude of heading change from parent to children
+    private float _size;                // the length of the root branch
     private float _relativeChildSize;   // 1 = same as parent, 0,5 = half, 2 = double size
 
     private List<SpecialEffect> _effects;
+    VideoExport videoExport;
 
     public static void main(String[] args)
     {
@@ -22,19 +24,22 @@ public class MainApp extends PApplet{
 
     public void settings()
     {
-        //fullScreen();
-        size(1000, 820);
+        fullScreen();
+        //size(1000, 820);
 
     }
 
     public void setup()
     {
+        videoExport = new VideoExport(this);
+        videoExport.startMovie();
+
         frameRate(30);
-        _rootCount = 1;
+        _rootCount = 2;
         _generations = 4;
         _childCount = 3;
         _spread = 0;
-        _size = 60;
+        _size = 100;
         _relativeChildSize = 1f;
 
 
@@ -57,5 +62,12 @@ public class MainApp extends PApplet{
                 _size,
                 _relativeChildSize);
         _tree.draw(_effects);
+        videoExport.saveFrame();
+    }
+
+    public void keyPressed() {
+        if (key == 'q') {
+            videoExport.endMovie();
+        }
     }
 }
