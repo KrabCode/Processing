@@ -3,20 +3,29 @@ import processing.core.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * The main class that starts first.
+ * Extending PApplet is just a way of running this from the IntelliJ IDEA ide.
+ *
+ * more info:
+ * https://proto.ink/2016/06/03/processing-in-intellij-combining-proper-java-with-processing/
+ */
 public class MainApp extends PApplet{
 
-    private TreeManager _tree;
+    private TreeManager tree;
+    private int generations;
+    private int childCount;
+    private int rootCount;
+    private float spread;              // magnitude of heading change from parent to children
+    private float size;                // the length of the root branch
+    private float relativeChildSize;   // 1 = same as parent, 0,5 = half, 2 = double size
+    private boolean captureVideo;
 
-    private int _generations;
-    private int _childCount;
-    private int _rootCount;
-    private float _spread;              // magnitude of heading change from parent to children
-    private float _size;                // the length of the root branch
-    private float _relativeChildSize;   // 1 = same as parent, 0,5 = half, 2 = double size
+    private List<SpecialEffect> effects;
 
-    private List<SpecialEffect> _effects;
-    VideoExport videoExport;
+    private VideoExport videoExport;
 
+    //delete main() and settings() in order to run this sketch in traditional processing
     public static void main(String[] args)
     {
         PApplet.main("MainApp", args );
@@ -24,49 +33,70 @@ public class MainApp extends PApplet{
 
     public void settings()
     {
-        fullScreen();
-        //size(1000, 820);
-
+        //fullScreen();
+        size(1200, 1080);
     }
 
     public void setup()
     {
-        videoExport = new VideoExport(this);
-        videoExport.startMovie();
-
+        //SETTINGS SETUP
         frameRate(30);
-        _rootCount = 2;
-        _generations = 4;
-        _childCount = 3;
-        _spread = 0;
-        _size = 100;
-        _relativeChildSize = 1f;
-
+        rootCount = 2;
+        generations = 5;
+        childCount = 3;
+        spread = 0;
+        size = 100;
+        relativeChildSize = 0.8f;
+        captureVideo = false;
+        if (captureVideo)
+        {
+            videoExport = new VideoExport(this);
+            videoExport.startMovie();
+        }
 
         //VISUAL EFFECTS SETUP
-        _effects = new ArrayList<>();
+        SpecialEffect trails = new SpecialEffect();
+        trails.effectType = EffectType.TRAILS;
+        trails.magnitude = 10;
 
-        SpecialEffect e01 = new SpecialEffect();
-        e01.effectType = EffectType.TRAILS;
-        e01.magnitude = 10;
-        _effects.add(e01);
+        SpecialEffect foreColour = new SpecialEffect();
+        foreColour.effectType = EffectType.FOREGROUND_BASE_COLOR;
+        foreColour.magnitude = 50;
 
-        _tree = new TreeManager(this);
+        SpecialEffect backColour = new SpecialEffect();
+        backColour.effectType = EffectType.BACKGROUND_COLOR;
+        backColour.magnitude = 255;
+
+        effects = new ArrayList<>();
+        effects.add(trails);
+        effects.add(foreColour);
+        effects.add(backColour);
+
+        tree = new TreeManager(this);
     }
 
     public void draw(){
-        _tree.populate(_rootCount,
-                _generations,
-                _childCount,
-                _spread += 0.2,
-                _size,
-                _relativeChildSize);
-        _tree.draw(_effects);
-        videoExport.saveFrame();
+        tree.populate(rootCount,
+                generations,
+                childCount,
+                spread += 0.1,
+                size,
+                relativeChildSize);
+        tree.draw(effects);
+        if (captureVideo)
+        {
+            videoExport.saveFrame();
+            if(spread == 360)
+            {
+                videoExport.endMovie();
+            }
+        }
+        println("fps: " + frameRate);
     }
 
     public void keyPressed() {
-        if (key == 'q') {
+        if (captureVideo && key == 'q')
+        {
             videoExport.endMovie();
         }
     }

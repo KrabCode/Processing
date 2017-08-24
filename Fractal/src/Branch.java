@@ -1,11 +1,13 @@
-import processing.core.PVector;
-
 public class Branch{
-    public PVector origin;
-    public PVector target;
+    public Point origin;
+    public Point target;
 
-
-    public Branch(PVector origin, PVector target)
+    /**
+     * Constructor
+     * @param origin point A
+     * @param target point B
+     */
+    public Branch(Point origin, Point target)
     {
         this.origin = origin;
         this.target = target;

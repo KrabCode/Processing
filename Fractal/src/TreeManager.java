@@ -1,64 +1,75 @@
-import processing.core.PVector;
 import processing.core.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static processing.core.PApplet.atan2;
 import static processing.core.PApplet.degrees;
 import static processing.core.PConstants.PI;
 
-
+/**
+ * A class that instantiates and draws a tree of vector pairs (branches).
+ */
 public class TreeManager {
 
     private PApplet p;
-    private List<List<Branch>> _mainTree;
+    private List<List<Branch>> TREE_OF_TREES;
 
     TreeManager(PApplet parent)
     {
         p = parent;
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    //  BUSINESS LOGIC
+    ////////////////////////////////////////////////////////////////////////////////////////////
     /**
-     * Instantiates the tree and populates it with branches.
-     *
+     * Instantiates n trees and populates them with branches according to the parameters.     *
+     * @param rootCount how many roots and therefore trees to instantiate
      * @param generations how many levels should the tree have
      * @param childCount how many children on each level
      * @param childSpread angular distance between siblings
      * @param size absolute size of the tree
-     * @param relativeChildSize relative size of the child
+     * @param relativeChildSize relative size of every child to its parent branch
      */
-    public void populate(int rootCount, int generations, int childCount, float childSpread, float size, float relativeChildSize)
+    public void populate(int rootCount, int generations, int childCount,
+                         float childSpread, float size, float relativeChildSize)
     {
-        _mainTree = new ArrayList<>();
+        if(TREE_OF_TREES == null)
+        {
+            TREE_OF_TREES = new ArrayList<>();
+        }else{
+            TREE_OF_TREES.clear();
+        }
+
+        Point rootCenter = new Point(p.width/2, p.height/2);
         for(int rootIndex = 0; rootIndex < rootCount; rootIndex++)
         {
+            //the roots will all grow from the middle in slices of (360 / root count)
             float rootAngle = rootIndex*(360/rootCount);
 
             //place root at the center of the screen
-            PVector rootCenter = new PVector(p.width/2, p.height/2);
-            PVector rootTarget = findPointOnEdgeOfCircle(rootCenter, size, -90 + rootAngle);
+            Point rootTarget = findPointOnEdgeOfCircle(rootCenter, size, -90 + rootAngle);
             Branch root = new Branch(rootCenter, rootTarget);
-            _mainTree.add(new ArrayList<>());
-            _mainTree.get(rootIndex).add(root);
+            TREE_OF_TREES.add(new ArrayList<>());
+            TREE_OF_TREES.get(rootIndex).add(root);
 
             //multiply it and each of its children until generations limit is reached
             for(int i = 0; i < generations; i++)
             {
-                int startingBranchCount = _mainTree.get(rootIndex).size(); //remember the starting value: the number of children will change
-                for(int j = 0; j < startingBranchCount; j++)
+                //remember the starting value: the number of children will change, you don't want to multiply freshly created children
+                int startingBranchCount = TREE_OF_TREES.get(rootIndex).size();
+                for(int branchIndex = 0; branchIndex < startingBranchCount; branchIndex++)
                 {
-                    List<Branch> children = multiplyBranch(_mainTree.get(rootIndex).get(j),
+                    List<Branch> children = multiplyBranch(TREE_OF_TREES.get(rootIndex).get(branchIndex),
                             childSpread, childCount, size*relativeChildSize);
-                    _mainTree.get(rootIndex).addAll(children);
+                    TREE_OF_TREES.get(rootIndex).addAll(children);
                 }
             }
         }
     }
 
     /**
-     * Instantiates additional branches from an input branch's size and angle.
-     *
+     * Instantiates additional branches using input branch size and angle.
      * @param branch the parent branch
      * @param spread angular distance between siblings
      * @param childCount the number of children to instantiate
@@ -68,45 +79,23 @@ public class TreeManager {
     private List<Branch> multiplyBranch(Branch branch, float spread, int childCount, float childSize)
     {
         List<Branch> resultingChildren = new ArrayList<>();
-        if(spread>360*2)
-        {
-            spread = spread % 360*2; //limit the maximum spread
-        }
-
+        Point childOrigin = branch.target;
         float spreadPerChild = spread*2 / (float)childCount;
-        PVector childOrigin = branch.target;
-        float parentAngle = getAngleBetweenVectors(branch.origin, branch.target);
-        for(int i = 0; i < childCount+1; i++)
+        float parentAngle = getAngle(branch.origin, branch.target);
+        for(int childIndex = 0; childIndex <= childCount; childIndex++)
         {
             float firstChildAngle = parentAngle - spread;
-            float angle =  firstChildAngle + spreadPerChild * i;
-            PVector childTarget = findPointOnEdgeOfCircle(childOrigin, childSize, angle);
+            float angle =  firstChildAngle + spreadPerChild * childIndex;
+            Point childTarget = findPointOnEdgeOfCircle(childOrigin, childSize, angle);
             Branch child = new Branch(childOrigin, childTarget);
             resultingChildren.add(child);
         }
         return resultingChildren;
     }
 
-    /**
-     * Finds a point in a given angle and distance from a center point.
-     * @param center center point
-     * @param radius given distance
-     * @param angle given angle
-     * @return
-     */
-    private PVector findPointOnEdgeOfCircle(PVector center, float radius, float angle)
-    {
-        return new PVector(
-                center.x + radius * p.cos(angle * PI / 180),
-                center.y + radius * p.sin(angle * PI / 180)
-        );
-    }
-
-    private float getAngleBetweenVectors(PVector origin, PVector end)
-    {
-        return degrees(p.atan2(end.y - origin.y, end.x - origin.x));
-    }
-
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    //  DRAWING TO THE GUI
+    ////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
      * Draws the tree to the p canvas.
@@ -116,28 +105,42 @@ public class TreeManager {
     {
         //paint the background
         SpecialEffect trailEffect = getEffectByType(EffectType.TRAILS, effects);
+        SpecialEffect foreColour = getEffectByType(EffectType.FOREGROUND_BASE_COLOR, effects);
+        SpecialEffect backColour = getEffectByType(EffectType.BACKGROUND_COLOR, effects);
         if(trailEffect!=null)
         {
-            //the magnitude is the alpha of the background: lower = more trails
-            p.fill(255, trailEffect.magnitude);
-
+            if(backColour != null)
+            {
+                //the magnitude is the alpha of the background: lower = more trails
+                p.fill(backColour.magnitude, trailEffect.magnitude);
+            }else{
+                //the magnitude is the alpha of the background: lower = more trails
+                p.fill(255, trailEffect.magnitude);
+            }
         }else{
             p.fill(255);
         }
         p.rect(0, 0, p.width, p.height);
 
         //draw the tree
-        if(_mainTree!=null && _mainTree.size() > 0)
+        if(TREE_OF_TREES !=null && TREE_OF_TREES.size() > 0)
         {
-            for(List<Branch> subTree : _mainTree)
+            if(foreColour != null)
+            {
+                //todo does not work.. why?
+                p.fill(foreColour.magnitude);
+            }
+            else
+            {
+                p.fill(0);
+            }
+            for(List<Branch> subTree : TREE_OF_TREES)
             {
                 for(Branch b : subTree)
                 {
-                    p.fill(0);
                     p.line(b.origin.x, b.origin.y, b.target.x, b.target.y);
                 }
             }
-
         }
     }
 
@@ -160,4 +163,36 @@ public class TreeManager {
         }
         return null;
     }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    //  MATH
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    /**
+     * Finds a point in a given angle and distance from a center point.
+     * @param center center point
+     * @param radius given distance
+     * @param angle given angle
+     * @return
+     */
+    private Point findPointOnEdgeOfCircle(Point center, float radius, float angle)
+    {
+        Point result = new Point(
+                center.x + radius * p.cos(angle * PI / 180),
+                center.y + radius * p.sin(angle * PI / 180)
+        );
+        return result;
+    }
+
+    /**
+     * Returns angle of a line vs the horizont
+     *
+     * @param origin start of the line
+     * @param end end of the line 🚆
+     * @return horizontal line returns 0, vertical line returns -90
+     */
+    private float getAngle(Point origin, Point end)
+    {
+        return degrees(p.atan2(end.y - origin.y, end.x - origin.x));
+    }
+
 }
