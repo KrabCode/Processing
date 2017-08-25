@@ -1,6 +1,5 @@
 import com.hamoid.VideoExport;
 import processing.core.*;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -12,18 +11,21 @@ import java.util.List;
  */
 public class MainApp extends PApplet{
 
+    //tree parameters
     private TreeManager tree;
+    private int rootCount;
     private int generations;
     private int childCount;
-    private int rootCount;
     private float spread;              // magnitude of heading change from parent to children
     private float size;                // the length of the root branch
     private float relativeChildSize;   // 1 = same as parent, 0,5 = half, 2 = double size
-    private boolean captureVideo;
-
-    private List<SpecialEffect> effects;
-
+    private boolean captureVideoFlag;
     private VideoExport videoExport;
+
+    //draw effects
+    float trailEffect;
+    int backColour;
+    float transparency;
 
     //delete main() and settings() in order to run this sketch in traditional processing
     public static void main(String[] args)
@@ -33,71 +35,112 @@ public class MainApp extends PApplet{
 
     public void settings()
     {
-        //fullScreen();
-        size(1200, 1080);
+        fullScreen();
+        //size(1200, 880);
     }
 
     public void setup()
     {
-        //SETTINGS SETUP
-        frameRate(30);
+        //tree parameters
+        frameRate(60);
         rootCount = 2;
-        generations = 5;
-        childCount = 3;
+        generations = 4;
+        childCount = 4;
         spread = 0;
         size = 100;
         relativeChildSize = 0.8f;
-        captureVideo = false;
-        if (captureVideo)
+        captureVideoFlag = true;
+        colorMode(RGB , 100, 100, 100, 100);
+
+
+        //draw effects
+        backColour = 0;
+        trailEffect = 20;
+        transparency = 100;
+
+        //apply the background immediately to avoid having to fade into the final backColour from 0
+        fill(backColour);
+        rect(0,0,width, height);
+
+        //check this class out too
+        tree = new TreeManager(this);
+
+        //video capture setup
+        if (captureVideoFlag)
         {
             videoExport = new VideoExport(this);
             videoExport.startMovie();
         }
-
-        //VISUAL EFFECTS SETUP
-        SpecialEffect trails = new SpecialEffect();
-        trails.effectType = EffectType.TRAILS;
-        trails.magnitude = 10;
-
-        SpecialEffect foreColour = new SpecialEffect();
-        foreColour.effectType = EffectType.FOREGROUND_BASE_COLOR;
-        foreColour.magnitude = 50;
-
-        SpecialEffect backColour = new SpecialEffect();
-        backColour.effectType = EffectType.BACKGROUND_COLOR;
-        backColour.magnitude = 255;
-
-        effects = new ArrayList<>();
-        effects.add(trails);
-        effects.add(foreColour);
-        effects.add(backColour);
-
-        tree = new TreeManager(this);
     }
 
-    public void draw(){
-        tree.populate(rootCount,
+    public void draw()
+    {
+        tree.populate(
+                rootCount,
                 generations,
                 childCount,
-                spread += 0.1,
+                spread += 0.05,
                 size,
-                relativeChildSize);
-        tree.draw(effects);
-        if (captureVideo)
+                relativeChildSize
+        );
+
+        drawTree(
+                tree.getMainTree(),
+                backColour,
+                trailEffect,
+                transparency
+        );
+
+        if (captureVideoFlag)
         {
             videoExport.saveFrame();
-            if(spread == 360)
-            {
-                videoExport.endMovie();
-            }
         }
         println("fps: " + frameRate);
     }
 
-    public void keyPressed() {
-        if (captureVideo && key == 'q')
+    private void drawTree(List<List<Branch>> treeOfTrees,  int backColour, float trailEffect, float transparency )
+    {
+        fill(backColour, trailEffect);
+        rect(-1, -1, width+1, height+1);
+
+        //draw the tree
+        if(treeOfTrees !=null && treeOfTrees.size() > 0)
         {
-            videoExport.endMovie();
+            for(List<Branch> subTree : treeOfTrees)
+            {
+                for(Branch b : subTree)
+                {
+                    //colour play
+                    stroke(
+                            50+sin(getAbsoluteAngle(b))*50,
+                            0,
+                            50-cos(getAbsoluteAngle(b))*50,
+                            transparency
+                    );
+                    line(b.origin.x, b.origin.y, b.target.x, b.target.y);
+                }
+            }
         }
+    }
+
+    private float getAbsoluteAngle(Branch b)
+    {
+        float result = tree.getAngle(b.origin,b.target);
+        if(sin(result)< 0){
+            result *= -1;
+        }
+        return result;
+    }
+
+    public void keyPressed() {
+        if (key == 'q')
+        {
+            if(captureVideoFlag)
+            {
+                videoExport.endMovie();
+            }
+            exit();
+        }
+
     }
 }

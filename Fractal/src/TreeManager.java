@@ -7,12 +7,17 @@ import static processing.core.PApplet.degrees;
 import static processing.core.PConstants.PI;
 
 /**
- * A class that instantiates and draws a tree of vector pairs (branches).
+ * A class that instantiates and draws a tree of point pairs (branches).
  */
 public class TreeManager {
 
     private PApplet p;
     private List<List<Branch>> TREE_OF_TREES;
+
+    public List<List<Branch>> getMainTree()
+    {
+        return TREE_OF_TREES;
+    }
 
     TreeManager(PApplet parent)
     {
@@ -20,10 +25,10 @@ public class TreeManager {
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////
-    //  BUSINESS LOGIC
+    //  HIGH LEVEL TREE LOGIC
     ////////////////////////////////////////////////////////////////////////////////////////////
     /**
-     * Instantiates n trees and populates them with branches according to the parameters.     *
+     * Instantiates n trees and populates them with branches according to the parameters
      * @param rootCount how many roots and therefore trees to instantiate
      * @param generations how many levels should the tree have
      * @param childCount how many children on each level
@@ -94,78 +99,7 @@ public class TreeManager {
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////
-    //  DRAWING TO THE GUI
-    ////////////////////////////////////////////////////////////////////////////////////////////
-
-    /**
-     * Draws the tree to the p canvas.
-     * @param effects list of effects to display when drawing
-     */
-    public void draw(List<SpecialEffect> effects)
-    {
-        //paint the background
-        SpecialEffect trailEffect = getEffectByType(EffectType.TRAILS, effects);
-        SpecialEffect foreColour = getEffectByType(EffectType.FOREGROUND_BASE_COLOR, effects);
-        SpecialEffect backColour = getEffectByType(EffectType.BACKGROUND_COLOR, effects);
-        if(trailEffect!=null)
-        {
-            if(backColour != null)
-            {
-                //the magnitude is the alpha of the background: lower = more trails
-                p.fill(backColour.magnitude, trailEffect.magnitude);
-            }else{
-                //the magnitude is the alpha of the background: lower = more trails
-                p.fill(255, trailEffect.magnitude);
-            }
-        }else{
-            p.fill(255);
-        }
-        p.rect(0, 0, p.width, p.height);
-
-        //draw the tree
-        if(TREE_OF_TREES !=null && TREE_OF_TREES.size() > 0)
-        {
-            if(foreColour != null)
-            {
-                //todo does not work.. why?
-                p.fill(foreColour.magnitude);
-            }
-            else
-            {
-                p.fill(0);
-            }
-            for(List<Branch> subTree : TREE_OF_TREES)
-            {
-                for(Branch b : subTree)
-                {
-                    p.line(b.origin.x, b.origin.y, b.target.x, b.target.y);
-                }
-            }
-        }
-    }
-
-    /**
-     * Picks the first effect of a given type.
-     * This means the second effect of the same type will be ignored.
-     * @param type
-     * @param effects
-     * @return
-     */
-    private SpecialEffect getEffectByType(EffectType type, List<SpecialEffect> effects)
-    {
-        for(int i = 0; i < effects.size(); i++)
-        {
-            if(effects.get(i).effectType == type)
-            {
-                return effects.get(i);
-            }
-
-        }
-        return null;
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////
-    //  MATH
+    //  LOW LEVEL MATH
     ////////////////////////////////////////////////////////////////////////////////////////////
     /**
      * Finds a point in a given angle and distance from a center point.
@@ -174,13 +108,12 @@ public class TreeManager {
      * @param angle given angle
      * @return
      */
-    private Point findPointOnEdgeOfCircle(Point center, float radius, float angle)
+    public Point findPointOnEdgeOfCircle(Point center, float radius, float angle)
     {
-        Point result = new Point(
+        return new Point(
                 center.x + radius * p.cos(angle * PI / 180),
                 center.y + radius * p.sin(angle * PI / 180)
         );
-        return result;
     }
 
     /**
@@ -190,9 +123,17 @@ public class TreeManager {
      * @param end end of the line 🚆
      * @return horizontal line returns 0, vertical line returns -90
      */
-    private float getAngle(Point origin, Point end)
+    public float getAngle(Point origin, Point end)
     {
         return degrees(p.atan2(end.y - origin.y, end.x - origin.x));
     }
 
+
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    //  DRAWING TO THE GUI
+    ////////////////////////////////////////////////////////////////////////////////////////////
+
+    //see the MainApp drawTree() function
 }

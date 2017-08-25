@@ -12,4 +12,6 @@ public class Branch{
         this.origin = origin;
         this.target = target;
     }
+
+
 }
