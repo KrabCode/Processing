@@ -42,10 +42,10 @@ public class MainApp extends PApplet{
     public void setup()
     {
         //tree parameters
-        frameRate(60);
-        rootCount = 2;
-        generations = 4;
-        childCount = 4;
+        frameRate(30);
+        rootCount = 3;
+        generations = 8;
+        childCount = 2;
         spread = 0;
         size = 100;
         relativeChildSize = 0.8f;
@@ -58,7 +58,7 @@ public class MainApp extends PApplet{
         trailEffect = 20;
         transparency = 100;
 
-        //apply the background immediately to avoid having to fade into the final backColour from 0
+        //apply the background immediately to avoid having to fade into the final backColour from 0 or something
         fill(backColour);
         rect(0,0,width, height);
 
@@ -113,8 +113,8 @@ public class MainApp extends PApplet{
                     //colour play
                     stroke(
                             50+sin(getAbsoluteAngle(b))*50,
-                            0,
-                            50-cos(getAbsoluteAngle(b))*50,
+                            80,
+                            50+cos(getAbsoluteAngle(b))*50,
                             transparency
                     );
                     line(b.origin.x, b.origin.y, b.target.x, b.target.y);
