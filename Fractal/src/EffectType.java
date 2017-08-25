@@ -1,6 +1,0 @@
-public enum EffectType {
-    TRAILS,
-    FOREGROUND_BASE_COLOR,
-    BACKGROUND_COLOR,
-    COLOR_CHANGE
-}
