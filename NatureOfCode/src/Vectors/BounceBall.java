@@ -11,7 +11,6 @@ public class BounceBall {
     private PVector spd;
     private PVector acc;
 
-    private float initspd;
     private float speedLimit;
     private float accMod;
 
@@ -20,17 +19,19 @@ public class BounceBall {
     private PVector center;
     private float boundary;
 
-    public BounceBall(PApplet p, PVector center, PVector initialSpeed, float speedLimit, float accModifier, float r, float boundary)
+    public BounceBall(PApplet p, PVector center, PVector initialSpeed,
+                      float speedLimit, float accModifier, float r, float boundary)
     {
         this.p = p;
         this.center  = center;
         this.speedLimit = speedLimit;
         this.spd = initialSpeed;
         this.acc = new PVector(0,0);
+        this.pos = new PVector(center.x, center.y);
         this.accMod = accModifier;
         this.boundary = boundary;
         this.r = r;
-        pos = new PVector(center.x, center.y);
+
         p.ellipseMode(p.CENTER);
     }
 
@@ -40,14 +41,14 @@ public class BounceBall {
         spd.limit(speedLimit);
         pos.add(spd);
         collisionCheck();
-
         p.ellipse(pos.x, pos.y, r, r);
     }
 
-    public void collisionCheck(){
+    public void collisionCheck()
+    {
         if(PVector.dist(center, pos) > boundary)
         {
-            //acc.add(PVector.sub(pos, center).mult(accMod));
+            p.println("center " + center + "pos " +  pos + " crossed boundary " + boundary);
 
             float targetX = center.x;
             float dx = targetX - pos.x;

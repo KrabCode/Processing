@@ -37,7 +37,7 @@ public class TreeManager {
      * @param relativeChildSize relative size of every child to its parent branch
      */
     public void populate(int rootCount, int generations, int childCount,
-                         float childSpread, float size, float relativeChildSize)
+                         float childSpread, float size, float relativeChildSize, float firstRootAngle)
     {
         if(TREE_OF_TREES == null)
         {
@@ -53,7 +53,7 @@ public class TreeManager {
             float rootAngle = rootIndex*(360/rootCount);
 
             //place root at the center of the screen
-            Point rootTarget = findPointOnEdgeOfCircle(rootCenter, size, -90 + rootAngle);
+            Point rootTarget = findPointOnEdgeOfCircle(rootCenter, size, firstRootAngle + rootAngle);
             Branch root = new Branch(rootCenter, rootTarget);
             TREE_OF_TREES.add(new ArrayList<>());
             TREE_OF_TREES.get(rootIndex).add(root);
@@ -65,9 +65,9 @@ public class TreeManager {
                 int startingBranchCount = TREE_OF_TREES.get(rootIndex).size();
                 for(int branchIndex = 0; branchIndex < startingBranchCount; branchIndex++)
                 {
-                    List<Branch> children = multiplyBranch(TREE_OF_TREES.get(rootIndex).get(branchIndex),
-                            childSpread, childCount, size*relativeChildSize);
+                    List<Branch> children = multiplyBranch(TREE_OF_TREES.get(rootIndex).get(branchIndex), childSpread, childCount, size*relativeChildSize);
                     TREE_OF_TREES.get(rootIndex).addAll(children);
+
                 }
             }
         }
@@ -87,7 +87,9 @@ public class TreeManager {
         Point childOrigin = branch.target;
         float spreadPerChild = spread*2 / (float)childCount;
         float parentAngle = getAngle(branch.origin, branch.target);
-        for(int childIndex = 1; childIndex < childCount; childIndex++)
+
+        //i have no idea how this for loop works but by god it gives me the tingles
+        for(int childIndex = 0; childIndex < childCount; childIndex++)
         {
             float firstChildAngle = parentAngle - spread;
             float angle =  firstChildAngle + spreadPerChild * childIndex;

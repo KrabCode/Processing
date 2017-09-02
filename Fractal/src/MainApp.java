@@ -19,6 +19,8 @@ public class MainApp extends PApplet{
     private float spread;              // magnitude of heading change from parent to children
     private float size;                // the length of the root branch
     private float relativeChildSize;   // 1 = same as parent, 0,5 = half, 2 = double size
+    private float firstRootAngle;
+
     private boolean captureVideoFlag;
     private VideoExport videoExport;
 
@@ -27,7 +29,9 @@ public class MainApp extends PApplet{
     int backColour;
     float transparency;
 
-    //delete main() and settings() in order to run this sketch in traditional processing
+    //if you want to run this in regular processing or APDE on android
+    //just delete everything that throws an error and you're set m8
+    //keep in mind that the IDEA environment is superior to any alternative
     public static void main(String[] args)
     {
         PApplet.main("MainApp", args );
@@ -43,20 +47,22 @@ public class MainApp extends PApplet{
     {
         //tree parameters
         frameRate(30);
-        rootCount = 3;
-        generations = 8;
+        rootCount = 2;
+        generations = 5;
         childCount = 2;
         spread = 0;
-        size = 100;
+        size = 140;
+        firstRootAngle = 0;
         relativeChildSize = 0.8f;
+
         captureVideoFlag = true;
         colorMode(RGB , 100, 100, 100, 100);
 
 
         //draw effects
         backColour = 0;
-        trailEffect = 20;
-        transparency = 100;
+        trailEffect = 8;
+        transparency = 30;
 
         //apply the background immediately to avoid having to fade into the final backColour from 0 or something
         fill(backColour);
@@ -81,7 +87,8 @@ public class MainApp extends PApplet{
                 childCount,
                 spread += 0.05,
                 size,
-                relativeChildSize
+                relativeChildSize,
+                firstRootAngle
         );
 
         drawTree(
@@ -95,7 +102,7 @@ public class MainApp extends PApplet{
         {
             videoExport.saveFrame();
         }
-        println("fps: " + frameRate);
+        //println("fps: " + frameRate);
     }
 
     private void drawTree(List<List<Branch>> treeOfTrees,  int backColour, float trailEffect, float transparency )
@@ -110,19 +117,24 @@ public class MainApp extends PApplet{
             {
                 for(Branch b : subTree)
                 {
-                    //colour play
-                    stroke(
-                            50+sin(getAbsoluteAngle(b))*50,
-                            80,
-                            50+cos(getAbsoluteAngle(b))*50,
-                            transparency
-                    );
+                    stroke(100,
+                            20+cos(getAbsoluteAngle(b))*20 + sin(getAbsoluteAngle(b))*20,
+                            60-sin(getAbsoluteAngle(b))*20 + cos(getAbsoluteAngle(b))*20,
+                            transparency);
                     line(b.origin.x, b.origin.y, b.target.x, b.target.y);
                 }
             }
         }
     }
 
+    /**
+     * Gets the positive value of the angle from the input branch to an arbitrary baseline.
+     * -1 becomes 1. 1 stays 1. Useful for working with colours I think. Don't wanna go below zero.
+     *
+     * Ultimately unimportant.
+     * @param b
+     * @return
+     */
     private float getAbsoluteAngle(Branch b)
     {
         float result = tree.getAngle(b.origin,b.target);
@@ -131,6 +143,7 @@ public class MainApp extends PApplet{
         }
         return result;
     }
+
 
     public void keyPressed() {
         if (key == 'q')

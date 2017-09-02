@@ -45,7 +45,6 @@ public class BounceBallGrid {
             i+=1;
             p.noStroke();
             p.fill( 50 + p.sin(i)*50, p.sin(i)*50,50 + p.cos(i)*50, 50);
-
             ball.draw();
         }
     }

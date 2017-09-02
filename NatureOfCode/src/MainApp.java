@@ -1,11 +1,13 @@
-import Randomness.GaussianDistribution;
-import Randomness.MontecarloDistribution;
-import Randomness.Perlin;
-import Randomness.Static;
-import Vectors.BounceBallGrid;
+import Ecosystem.Fly;
+import Ecosystem.Shark;
+import Ecosystem.SimpleBall;
+import Vectors.BallManager;
 import com.hamoid.VideoExport;
 import processing.core.PApplet;
 import processing.core.PVector;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class MainApp extends PApplet{
@@ -18,55 +20,25 @@ public class MainApp extends PApplet{
     {
         fullScreen();
     }
-
-
-    private GaussianDistribution gauss;
-    private MontecarloDistribution monte;
-    private Perlin perlin;
-    private Static stat;
-    private BounceBallGrid bounceBallGrid_ver;
-
-    private BounceBallGrid bounceBallGrid_hor;
-
+    BallManager b;
     VideoExport videoExport;
 
     public void setup(){
 
-        bounceBallGrid_hor = new BounceBallGrid(this,
-                30,
-                20,
-                1f,
-                new PVector(0.5f,0f),
-                1,
-                0.0000001f,
-                1,
-                0
-        );
-
-        bounceBallGrid_ver = new BounceBallGrid(this,
-                30,
-                20,
-                1f,
-                new PVector(0,0.5f),
-                1,
-                0.000001f,
-                0,
-                1
-        );
-
+        b = new BallManager(this);
+        b.setup();
         drawBackground(false);
-
-        videoExport = new VideoExport(this);
-        videoExport.startMovie();
+        //videoExport = new VideoExport(this);
+        //videoExport.startMovie();
     }
 
     public void draw()
     {
-        bounceBallGrid_ver.draw();
-        bounceBallGrid_hor.draw();
-
+        noStroke();
+        fill(255,60);
+        b.draw();
         drawBackground(true);
-        videoExport.saveFrame();
+        //videoExport.saveFrame();
     }
 
     public void drawBackground(boolean trailEffect)
@@ -78,7 +50,7 @@ public class MainApp extends PApplet{
 
     public void keyPressed() {
         if(key == 'q'){
-            videoExport.endMovie();
+            //videoExport.endMovie();
             exit();
         }
     }
