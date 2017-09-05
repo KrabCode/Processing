@@ -87,9 +87,7 @@ public class TreeManager {
         Point childOrigin = branch.target;
         float spreadPerChild = spread*2 / (float)childCount;
         float parentAngle = getAngle(branch.origin, branch.target);
-
-        //i have no idea how this for loop works but by god it gives me the tingles
-        for(int childIndex = 0; childIndex < childCount; childIndex++)
+        for(int childIndex = 0; childIndex < childCount+1; childIndex++)
         {
             float firstChildAngle = parentAngle - spread;
             float angle =  firstChildAngle + spreadPerChild * childIndex;

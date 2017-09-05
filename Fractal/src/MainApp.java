@@ -47,9 +47,9 @@ public class MainApp extends PApplet{
     {
         //tree parameters
         frameRate(30);
-        rootCount = 2;
-        generations = 5;
-        childCount = 2;
+        rootCount = 4;
+        generations = 3;
+        childCount = 3;
         spread = 0;
         size = 140;
         firstRootAngle = 0;
@@ -58,11 +58,10 @@ public class MainApp extends PApplet{
         captureVideoFlag = true;
         colorMode(RGB , 100, 100, 100, 100);
 
-
         //draw effects
         backColour = 0;
-        trailEffect = 8;
-        transparency = 30;
+        trailEffect = 5;
+        transparency = 20;
 
         //apply the background immediately to avoid having to fade into the final backColour from 0 or something
         fill(backColour);
@@ -117,10 +116,12 @@ public class MainApp extends PApplet{
             {
                 for(Branch b : subTree)
                 {
-                    stroke(100,
-                            20+cos(getAbsoluteAngle(b))*20 + sin(getAbsoluteAngle(b))*20,
-                            60-sin(getAbsoluteAngle(b))*20 + cos(getAbsoluteAngle(b))*20,
+                    stroke(
+                            50+cos(getAbsoluteAngle(b))*50 + sin(getAbsoluteAngle(b))*50,
+                            0,
+                            50-cos(getAbsoluteAngle(b))*50 + sin(getAbsoluteAngle(b))*50,
                             transparency);
+
                     line(b.origin.x, b.origin.y, b.target.x, b.target.y);
                 }
             }

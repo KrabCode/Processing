@@ -1,13 +1,7 @@
-import Ecosystem.Fly;
-import Ecosystem.Shark;
-import Ecosystem.SimpleBall;
-import Vectors.BallManager;
+import Fractals.Mandelbrot;
 import com.hamoid.VideoExport;
 import processing.core.PApplet;
-import processing.core.PVector;
-
-import java.util.ArrayList;
-import java.util.List;
+import processing.core.PImage;
 
 
 public class MainApp extends PApplet{
@@ -18,40 +12,59 @@ public class MainApp extends PApplet{
     }
     public void settings()
     {
-        fullScreen();
+        //fullScreen();
+        size(400,400);
     }
-    BallManager b;
+
+
+
     VideoExport videoExport;
 
-    public void setup(){
+    private boolean breatheIn = true;
 
-        b = new BallManager(this);
-        b.setup();
-        drawBackground(false);
-        //videoExport = new VideoExport(this);
-        //videoExport.startMovie();
+    private float minRadius = 10;
+    private float maxRadiusEdgeMargin = 40;
+    private float framesPerBreath = 30*8;
+
+    private float radius;
+    private float maxRadius;
+
+    public void setup()
+    {
+        //fullScreen();
+        radius = minRadius;
+        if(width < height){
+            maxRadius = width - maxRadiusEdgeMargin;
+        }else{
+            maxRadius = height - maxRadiusEdgeMargin;
+        }
+        background(0);
+        noStroke();
+        ellipseMode(CENTER);
     }
+
 
     public void draw()
     {
-        noStroke();
-        fill(255,60);
-        b.draw();
-        drawBackground(true);
-        //videoExport.saveFrame();
-    }
-
-    public void drawBackground(boolean trailEffect)
-    {
-        if(trailEffect)    fill(0, 10);
-        else                fill(0);
-        rect(-5,-5,width+5, height+5);
-    }
-
-    public void keyPressed() {
-        if(key == 'q'){
-            //videoExport.endMovie();
-            exit();
+        if(breatheIn){
+            radius += (maxRadius-minRadius) / framesPerBreath;
+        }else{
+            radius -= (maxRadius-minRadius) / framesPerBreath;
         }
+        if(radius > maxRadius || radius < minRadius){
+            breatheIn = !breatheIn;
+        }
+
+        fill(0,30);
+        rect(0,0,width, height);
+        fill(255, 255, 255, 30);
+        ellipse(width/2, height/2, radius, radius);
+        println(frameCount + ":" + breatheIn);
     }
+
+
+
+
+
+
 }
