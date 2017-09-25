@@ -1,318 +1,320 @@
-
 import processing.core.PApplet;
+import processing.core.PImage;
+
+import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
+
+import com.hamoid.VideoExport;
+
+public class MainApp extends PApplet{
+
+//    concentric circles growing outward made out of various icons / gifs even? one icon type per circle
+//    background generated from icon for good contrast?
+
+    int bandsShownMax;
+    int bandsShownSoFar;
+
+    int imgPerBand = 12;
+    int spawnrate = 50;
+    //float longevityAccModifier = 1f;
+    float startAcc = 0;
+    float startSpd = 0.1f;
+    float startRacc = 0;
+    float startRspd = 0.008f;
+    float sizeModifier = 20;
+
+    int bgColor = 00;
+    int bgAlpha = 5;
+
+    String imgSourceDir = "C:\\Users\\Jakub\\Desktop\\148705-essential-collection\\png";
+    List<PImage> imageStore;
+    List<Band> bandsOnScreen;
 
 
-public class MainApp extends PApplet {
 
-    public static void main(String[] args) {
+    //////////////
+    // ON AIR   //
+    //////////////
+
+    boolean rec = false;
+    String ostSourcePath = "";
+    boolean playSong = false;;
+    File soundFile;
+
+    boolean fadeout = false;
+    VideoExport vid;
+    float fadeMag = 0;
+    float fadeSpd = 3f;
+    float fadeMin = 0;
+
+    public static void main(String[] args)
+    {
         PApplet.main("MainApp", args);
     }
 
-    public void settings() {
+    public void paintCrosshairs(){
+        stroke(200,0,0);
+        line(0, height/2, width, height/2);
+        line(width/2, 0, width / 2, height);
+    }
+
+    public void settings()
+    {
         //fullScreen();
-        size(1000, 1000);
+        size(1200,800);
     }
-    //tree parameters
-    private TreeManager tree;
-    private int rootCount;
-    private int generations;
-    private int childCount;
-    private float spread;
-    private float spreadChangeSpeed;
-    //magnitude of heading change from parent to children
-    private float size;
-    // the length of the root branch
-    private float relativeChildSize;
-    // 1 = same as parent, 0,5 = half, 2 = double size
-    private float firstRootAngle;
-    //draw effects
-    private float trailEffect;
-    private int backColour;
-    private float opacity;
 
-    private boolean mouseHeld;
-    private int colourMode;
+    public void setup(){
+        bandsOnScreen = new ArrayList<Band>();
+        loadImagesFromDisk();
 
-    public void setup() {
-        frameRate(30);
-        backColour = 0;
-        tree = new TreeManager();
-        // tree parameters
-
-        rootCount = 2;
-        generations = 3;
-        childCount = 5;
-        spread = 30;
-        spreadChangeSpeed = 0.05f;
-        size = 100;
-        firstRootAngle = 90;
-        relativeChildSize = 1f;
-        opacity = 20;
-        trailEffect = 3;
-
-        // diminishing tree parameters
-        /*
-        rootCount = 2;
-        generations = 7;
-        childCount = 1;
-        spread = 10;
-        spreadChangeSpeed = 0.1f;
-        size = 70;
-        firstRootAngle = -90;
-        relativeChildSize =0.8f;
-        opacity = 100;
-*/
-
-
-        colorMode(RGB, 100, 100, 100, 100);
-
-        // apply the background immediately to avoid having to fade into the final backColour from 0
         noStroke();
-        fill(backColour);
-        rect(0, 0, width, height);
-    }
+        fill(bgColor);
+        rect(0,0,width,height);
 
-    public void draw() {
-        //draw background without the background() method as it can't use alpha on the main drawing surface, this can
-        noStroke();
-        fill(backColour, trailEffect);
-        rect(0,0,width, height);
-
-        tree.populate(rootCount,
-                generations,
-                childCount,
-                spread += spreadChangeSpeed,
-                size,
-                relativeChildSize,
-                firstRootAngle
-        );
-        drawTree(tree.getMainTree());
-
-        if(mousePressed && !mouseHeld){
-            mouseHeld = true;
-            colourMode++;
-            if(colourMode > 3)
-            {
-                colourMode = 0;
-            }
-        }else if (!mousePressed){
-            mouseHeld = false;
-        }
-
-        println("fps: " + (int) frameRate +
-                " branchCount: " + tree.getBranchCount() +
-                " colourMode: " + colourMode
-        );
-    }
-
-    private void drawTree(ArrayList<ArrayList<Branch>> treeOfTrees) {
-        //draw every branch
-        if (treeOfTrees != null && treeOfTrees.size() > 0) {
-            for (ArrayList<Branch> subTree : treeOfTrees) {
-                for (Branch b : subTree) {
-                    switch (colourMode){
-                        case 0: strokePink(b);      break;
-                        case 1: strokeBlue(b);      break;
-                        case 2: strokeGreen(b);     break;
-                        case 3: strokeRainbow(b);   break;
-                    }
-                    line(b.origin.x, b.origin.y, b.target.x, b.target.y);
+        if(rec){
+            vid = new VideoExport(this);
+            if(ostSourcePath!=""){
+                vid.setAudioFileName(ostSourcePath);
+                if(playSong){
+//                    soundFile = new SoundFile(this, "sample.mp3");
+//                    soundFile.play();
                 }
             }
+            vid.startMovie();
+        }
+    }
+
+    boolean pause = false;
+    public void draw() {
+//        paintCrosshairs();
+        if(!pause){
+            //background
+            noStroke();
+            fill(bgColor, bgAlpha);
+            rect(0, 0, width, height);
+            //spawn new bands
+            if (frameCount == 1 || (frameCount % spawnrate == 0)) {
+                bandsOnScreen.add(getNewBand());
+                bandsShownSoFar++;
+            }
+            //draw bands
+            for (Band b : bandsOnScreen) {
+                b.update();
+                b.draw();
+            }
+
+            removeAllOffscreenBands();
+
+            if (fadeout) {
+                if (fadeMag < 255 - fadeMin) {
+                    tint(255 - (fadeMag += fadeSpd));
+                } else {
+                    tint(fadeMin);
+                }
+            }
+            if (rec) {
+                vid.saveFrame();
+                println("elapsed: " + vid.getCurrentTime());
+            }
         }
 
+        if(keyPressed){
+            if(key=='w' && rec) {
+                vid.endMovie();
+                rec = false;
+            }
+            if(key=='f'){
+                fadeout = true;
+            }
+            if(key=='+'){
+                startRacc += 0.01;
+            }
+            if(key=='-'){
+                startAcc += 0.01;
+            }
+        }
+        if(keyPressed && key=='p'){
+            pause = true;
+        }else{
+            pause = false;
+        }
+    }
+
+    void loadImagesFromDisk(){
+        imageStore = new ArrayList<PImage>();
+        List<String> imgFilenames = getFilenamesInDirectory(imgSourceDir);
+        for(String s : imgFilenames){
+            imageStore.add(loadImage(imgSourceDir + "\\" + s));
+        }
+        println("-----------------");
+        println("imgs loaded:" + imageStore.size());
 
     }
 
-
-
-    public void strokePink(Branch b){
-        stroke(100,
-                20 + cos(getAbsoluteAngle(b)) * 20 + sin(getAbsoluteAngle(b)) * 20,
-                60 - sin(getAbsoluteAngle(b)) * 20 + cos(getAbsoluteAngle(b)) * 20,
-                opacity);
+    void removeAllOffscreenBands(){
+        List<Band> toRemove = new ArrayList<Band>();
+        for(Band l : bandsOnScreen){
+            if(l.loc > width + height){
+                toRemove.add(l);
+            }
+        }
+        bandsOnScreen.removeAll(toRemove);
     }
 
-    public void strokeBlue(Branch b){
-        stroke(
-                20 + cos(getAbsoluteAngle(b)) * 20 + sin(getAbsoluteAngle(b)) * 20,
-                60 - sin(getAbsoluteAngle(b)) * 20 + cos(getAbsoluteAngle(b)) * 20,
-                100,
-                opacity);
-    }
-    public void strokeGreen(Branch b){
-        stroke(
-                20 + cos(getAbsoluteAngle(b)) * 20 + sin(getAbsoluteAngle(b)) * 20,
-                100,
-                60 - sin(getAbsoluteAngle(b)) * 20 + cos(getAbsoluteAngle(b)) * 20,
-                opacity);
+    private Band getNewBand() {
+        Band b = new Band();
+        b.setup(getRandomUnusedImage(), imgPerBand);
+        return b;
     }
 
-    public void strokeRainbow(Branch b){
-        stroke(
-                50 + sin(getAbsoluteAngle(b)) * 25 - cos(getAbsoluteAngle(b)) * 25,
-                50 - cos(getAbsoluteAngle(b)) * 25 - sin(getAbsoluteAngle(b)) * 25,
-                50 - sin(getAbsoluteAngle(b)) * 25 + cos(getAbsoluteAngle(b)) * 25,
-                opacity);
+    ArrayList<Integer> usedFilenameIndexes = new ArrayList<Integer>();
+    private PImage getRandomUnusedImage(){
+        //reset if all have been used
+        if(usedFilenameIndexes.size() >= imageStore.size()){
+            usedFilenameIndexes.clear();
+        }
+        //randomly find an unused index
+        int randomIndex;
+        do{
+            randomIndex = round(random(0, imageStore.size()-1));
+        }while(usedFilenameIndexes.contains(randomIndex));
+        usedFilenameIndexes.add(randomIndex);
+        return imageStore.get(randomIndex);
+    }
+
+    ArrayList<String> getFilenamesInDirectory(String dir){
+        ArrayList<String> filenames = new ArrayList<String>();
+        File folder = new File(dir);
+        File[] listOfFiles = folder.listFiles();
+        for (int i = 0; i < listOfFiles.length; i++) {
+            if (listOfFiles[i].isFile()) {
+                System.out.println("File " + listOfFiles[i].getName());
+                filenames.add(listOfFiles[i].getName());
+            } else if (listOfFiles[i].isDirectory()) {
+                System.out.println("Directory " + listOfFiles[i].getName());
+            }
+        }
+        return filenames;
+    }
+
+    public class Band{
+        PImage img;
+        float loc, spd, acc;
+        float rot, rSpd, rAcc;
+        int imgCount;
+        Point coords;
+        public void setup(PImage img, int imgCount){
+            this.img = img;
+            this.imgCount = imgCount;
+            this.spd = startSpd;
+            this.rot = bandsShownSoFar * 2;
+            this.rSpd = startRspd;
+        }
+
+        public void applyForce(float acc, float rAcc){
+            this.acc += acc ;
+            this.rAcc += rAcc ;
+        }
+
+        private float genRforce() {
+            float f = 0;
+            return f;
+        }
+
+        private float genForce() {
+            float f = 0;
+            return f;
+        }
+
+        public void update(){
+
+            applyForce(genForce(), genRforce());
+
+            spd += acc;
+            rSpd += rAcc;
+            loc += spd;
+            rot += rSpd;
+
+            acc = 0;
+            rAcc = 0;
+        }
+
+        public void draw() {
+            float angleStep = 360 / imgCount;
+            for(int i = 0; i < imgCount; i++){
+                coords = getPointAtAngle(
+                        new Point(width/2, height/2),
+                        loc,
+                        rot + angleStep * i
+                );
+                float size = sizeModifier*spd;
+                pushMatrix();
+                    translate(coords.x,coords.y);
+                    rotate(toRad(
+                            -90 + getAngle(
+                                    new Point(coords.x, coords.y),
+                                    new Point(width/2, height/2)
+                            )));
+                    image(img, -size/2,-size/2, size, size);
+                popMatrix();
+            }
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    // LOW LEVEL MATH
+    // //////////////////////////////////////////////////////////////////////////////////////////
+    public float toDegrees(float rad){
+        return (float)Math.toDegrees(rad);
+    }
+
+    public float toRad(float degrees){
+        return (float)Math.toRadians(degrees);
+    }
+    /**
+     * Finds a point in a given angle and distance from a center point.
+     *
+     * @param center center point * @param radius given distance
+     * @param angle  given angle * @return
+     */
+    public Point getPointAtAngle(Point center, float radius, float angle) {
+        return new Point(center.x + radius * cos(angle * PI / 180), center.y + radius * sin(angle * PI / 180));
     }
 
     /**
-     * Gets the positive value of the angle from the input branch to an arbitrary baseline.
-     * -1 becomes 1. 1 stays 1. Useful for working with colours I think. Don't wanna go below zero.
-     * Ultimately unimportant.
+     * Returns angle of a line vs the horizont *
+     *
+     * @param origin start of the line
+     * @param end    end of the line 🚆
+     * @return horizontal line returns 0, vertical line returns -90 or 90
      */
-    private float getAbsoluteAngle(Branch b) {
-        float result = tree.getAngle(b.origin, b.target);
-        if (result < 0) {
-            result *= -1;
-        }
-        return result;
+    public float getAngle(Point origin, Point end) {
+        return degrees(atan2(end.y - origin.y, end.x - origin.x));
     }
 
-    public class TreeManager {
-        private ArrayList<ArrayList<Branch>> TREE_OF_TREES;
-
-        public ArrayList<ArrayList<Branch>> getMainTree() {
-            return TREE_OF_TREES;
-        }
-
-        //////////////////////////////////////////////////////////////////////////////////////////
-        // HIGH LEVEL TREE LOGIC
-        //////////////////////////////////////////////////////////////////////////////////////////
-
-        /**
-         * Instantiates n trees and populates them with branches according to the parameters
-         */
-        public void populate(int rootCount, int generations, int childCount, float childSpread, float size, float relativeChildSize, float firstRootAngle) {
-            if (TREE_OF_TREES == null) {
-                TREE_OF_TREES = new ArrayList<ArrayList<Branch>>();
-            } else {
-                TREE_OF_TREES.clear();
-            }
-            Point rootCenter = new Point(width / 2, height / 2);
-            for (int rootIndex = 0; rootIndex < rootCount; rootIndex++) {
-                //the roots will all grow from the middle in slices of (360 / root count)
-                float rootAngle = rootIndex * (360 / rootCount);
-                //place root at the center of the screen
-                Point rootTarget = findPointOnEdgeOfCircle(rootCenter, size, firstRootAngle + rootAngle);
-                Branch root = new Branch(rootCenter, rootTarget);
-                TREE_OF_TREES.add(new ArrayList<Branch>());
-                TREE_OF_TREES.get(rootIndex).add(root);
-                //multiply it and each of its children until generations limit is reached
-                for (int i = 0; i < generations; i++) {
-                    //remember the starting value: the number of children will change, you don't want to multiply freshly created children
-                    int startingBranchCount = TREE_OF_TREES.get(rootIndex).size();
-                    for (int branchIndex = 0; branchIndex < startingBranchCount; branchIndex++) {
-                        ArrayList<Branch> children = multiplyBranch(TREE_OF_TREES.get(rootIndex).get(branchIndex), childSpread, childCount, relativeChildSize);
-                        TREE_OF_TREES.get(rootIndex).addAll(children);
-                    }
-                }
-            }
-        }
-
-        /**
-         * Instantiates additional branches using input branch size and angle.
-         * @param branch the parent branch *
-         * @param spread angular distance between siblings
-         * @param childCount the number of children to instantiate
-         * @param relativeChildSize relative child size
-         *
-         */
-        private ArrayList<Branch> multiplyBranch(Branch branch, float spread, int childCount, float relativeChildSize) {
-            ArrayList<Branch> resultingChildren = new ArrayList<Branch>();
-            Point childOrigin = branch.target;
-            float spreadPerChild =  (spread * 2 / (float) childCount);
-            float parentAngle =  getAngle(branch.origin, branch.target);
-            float parentSize = size;
-            //we can skip a lot of the cpu expensive sqrt() if the relativeChildSize is 1
-            if(relativeChildSize != 1){
-                parentSize = getDistance(branch.origin, branch.target);
-            }
-            float childSize = parentSize * relativeChildSize;
-            for (int childIndex = 0; childIndex < childCount + 1; childIndex++) {
-                float firstChildAngle = parentAngle - spread;
-                float angle = firstChildAngle + spreadPerChild * childIndex;
-                Point childTarget = findPointOnEdgeOfCircle(childOrigin, childSize, angle);
-                Branch child = new Branch(childOrigin, childTarget);
-                resultingChildren.add(child);
-            }
-            return resultingChildren;
-        }
-
-        ////////////////////////////////////////////////////////////////////////////////////////////
-        // LOW LEVEL TREE MATH
-        // //////////////////////////////////////////////////////////////////////////////////////////
-
-        /**
-         * Finds a point in a given angle and distance from a center point.
-         *
-         * @param center center point * @param radius given distance
-         * @param angle  given angle * @return
-         */
-        public Point findPointOnEdgeOfCircle(Point center, float radius, float angle) {
-            return new Point(center.x + radius * cos(angle * PI / 180), center.y + radius * sin(angle * PI / 180));
-        }
-
-        /**
-         * Returns angle of a line vs the horizont *
-         *
-         * @param origin start of the line
-         * @param end    end of the line 🚆
-         * @return horizontal line returns 0, vertical line returns -90 or 90
-         */
-        public float getAngle(Point origin, Point end) {
-            return degrees(atan2(end.y - origin.y, end.x - origin.x));
-        }
-
-        /**
-         * Pythagoras died for our sins
-         * @param origin
-         * @param end
-         * @return
-         */
-        public float getDistance(Point origin, Point end){
-            float TriangleSideX = end.x - origin.x;
-            float TriangleSideY = end.y - origin.y;
-            float hypotenuse = sqrt(TriangleSideX*TriangleSideX + TriangleSideY * TriangleSideY);
-            return hypotenuse;
-        }
-
-        /**
-         *
-         * @return
-         */
-        public int getBranchCount() {
-            int total = 0;
-            for (int i = 0; i < TREE_OF_TREES.size(); i++) {
-                total += TREE_OF_TREES.get(i).size();
-            }
-            return total;
-        }
-    }
-
-    public class Branch {
-        public Point origin;
-        public Point target;
-
-        /**
-         * Constructor
-         * @param origin point A
-         * @param target point B
-         */
-        public Branch(Point origin, Point target) {
-            this.origin = origin;
-            this.target = target;
-        }
+    /**
+     * Pythagoras died for our sins
+     * @param a
+     * @param b
+     * @return
+     */
+    public float getDistance(Point a, Point b){
+        float A = b.x - a.x;
+        float B = b.y - a.y;
+        float C = sqrt(A*A + B*B);
+        return C;
     }
 
     public class Point {
-        public float x;
-        public float y;
+    public float x;
+    public float y;
 
-        public Point(float x, float y) {
-            this.x = x;
-            this.y = y;
+    public Point(float x, float y) {
+        this.x = x;
+        this.y = y;
         }
     }
+
 }

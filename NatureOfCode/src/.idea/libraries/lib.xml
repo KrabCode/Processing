@@ -1,0 +1,15 @@
+<component name="libraryTable">
+  <library name="lib">
+    <CLASSES>
+      <root url="file://$USER_HOME$/Desktop/Processing/processing-3.3/lib" />
+    </CLASSES>
+    <JAVADOC />
+    <NATIVE>
+      <root url="file://$USER_HOME$/Desktop/Processing/processing-3.3/lib" />
+    </NATIVE>
+    <SOURCES>
+      <root url="file://$USER_HOME$/Desktop/VideoExport/src" />
+    </SOURCES>
+    <jarDirectory url="file://$USER_HOME$/Desktop/Processing/processing-3.3/lib" recursive="false" />
+  </library>
+</component>
